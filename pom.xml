@@ -63,7 +63,7 @@
   </dependencies>
 
   <build>
-    <pluginManagement>
+    <finalName>${project.artifactId}</finalName>
       <plugins>
         <plugin>
           <groupId>org.springframework.boot</groupId>
@@ -120,7 +120,6 @@
           <version>${maven-clean-plugin.version}</version>
         </plugin>
       </plugins>
-    </pluginManagement>
   </build>
 
 </project>

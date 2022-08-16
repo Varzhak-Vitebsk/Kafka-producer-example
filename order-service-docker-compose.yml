@@ -1,0 +1,50 @@
+version: '3.9'
+services:
+
+  zookeeper:
+    image: zookeeper:latest
+    hostname: zookeeper
+    container_name: zookeeper
+    healthcheck:
+      test: "[[ $$(echo srvr | nc localhost 2181 | grep -oG 'Mode: standalone') = \"Mode: standalone\" ]]"
+      interval: 10s
+      timeout: 1s
+      retries: 30
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: wurstmeister/kafka:latest
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_LISTENERS: LOCAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: LOCAL://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LOCAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LOCAL
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+    ports:
+      - '9092:9092'
+
+  order-service:
+    container_name: order-service
+    build: .
+    image: order-service
+    depends_on:
+      - kafka
+    ports:
+      - '8080:8080'
+    environment:
+      JAVA_DEBUG_ENABLED: 'true'
+    volumes:
+      - ./target/order-service.jar:/app/order-service.jar

@@ -14,7 +14,7 @@ kafka:
   producer:
     order:
       topic: ${KAFKA_PRODUCER_ORDER_TOPIC:orders}
-      bootstrapServers: ${KAFKA_PRODUCER_ORDER_BOOTSTRAP_SERVERS:localhost:9092}
+      bootstrapServers: ${KAFKA_PRODUCER_ORDER_BOOTSTRAP_SERVERS:kafka:9092}
       security:
         username: ${KAFKA_PRODUCER_ORDER_SECURITY_USERNAME:}
         password: ${KAFKA_PRODUCER_ORDER_SECURITY_PASSWORD:}
