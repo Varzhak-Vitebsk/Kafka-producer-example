@@ -1,0 +1,40 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: order-service
+#  datasource:
+#    platform: postgres
+#    url: jdbc:postgresql://${POSTGRES_URL:localhost:5432/postgres}
+#    username: ${POSTGRES_USER:postgres}
+#    password: ${POSTGRES_PASSWORD:postgres}
+#    hikari:
+#      schema: ${POSTGRES_SCHEMA:salary}
+#      maximum-pool-size: 10
+#      minimum-idle: 5
+#      connection-timeout: 30000
+#      pool-name: datasource-salary
+#  jpa:
+#    database: postgresql
+#    properties:
+#      hibernate:
+#        jdbc:
+#          lob:
+#            non_contextual_creation: true
+#        physical_naming_strategy: com.vladmihalcea.hibernate.naming.CamelCaseToSnakeCaseNamingStrategy
+#    hibernate:
+#      ddl-auto: none
+#    generate-ddl: false
+#  liquibase:
+#    enabled: true
+#    change-log: classpath:database/migrations/salary.xml
+  jackson:
+    default-property-inclusion: non_null
+  codec:
+    max-in-memory-size: 1048576
+    max-request-size: 4400390
+
+logging:
+  level:
+    com.epam: ${LOGGING_LEVEL_COM_EPAM:DEBUG}
