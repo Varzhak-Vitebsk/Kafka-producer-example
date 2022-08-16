@@ -4,36 +4,23 @@ server:
 spring:
   application:
     name: order-service
-#  datasource:
-#    platform: postgres
-#    url: jdbc:postgresql://${POSTGRES_URL:localhost:5432/postgres}
-#    username: ${POSTGRES_USER:postgres}
-#    password: ${POSTGRES_PASSWORD:postgres}
-#    hikari:
-#      schema: ${POSTGRES_SCHEMA:salary}
-#      maximum-pool-size: 10
-#      minimum-idle: 5
-#      connection-timeout: 30000
-#      pool-name: datasource-salary
-#  jpa:
-#    database: postgresql
-#    properties:
-#      hibernate:
-#        jdbc:
-#          lob:
-#            non_contextual_creation: true
-#        physical_naming_strategy: com.vladmihalcea.hibernate.naming.CamelCaseToSnakeCaseNamingStrategy
-#    hibernate:
-#      ddl-auto: none
-#    generate-ddl: false
-#  liquibase:
-#    enabled: true
-#    change-log: classpath:database/migrations/salary.xml
   jackson:
     default-property-inclusion: non_null
   codec:
     max-in-memory-size: 1048576
     max-request-size: 4400390
+    
+kafka:
+  producer:
+    order:
+      topic: ${KAFKA_PRODUCER_ORDER_TOPIC:orders}
+      bootstrapServers: ${KAFKA_PRODUCER_ORDER_BOOTSTRAP_SERVERS:localhost:9092}
+      security:
+        username: ${KAFKA_PRODUCER_ORDER_SECURITY_USERNAME:}
+        password: ${KAFKA_PRODUCER_ORDER_SECURITY_PASSWORD:}
+        trust-store:
+          path: ${KAFKA_PRODUCER_ORDER_SECURITY_TRUST_STORE_PATH:}
+          password: ${KAFKA_PRODUCER_ORDER_SECURITY_TRUST_STORE_PASSWORD:}
 
 logging:
   level:
