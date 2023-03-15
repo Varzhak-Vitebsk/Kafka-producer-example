@@ -1,6 +1,6 @@
 package com.epam.example.service;
 
-import com.epam.example.model.OrderKafkaMessage;
+import com.epam.example.OrderKafkaAvroMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,9 +18,9 @@ public class OrderMessageCreator {
   @Scheduled(fixedRate = 2000, initialDelay = 1000)
   public void createMessage() {
     log.info("Sending");
-    Mono.just(OrderKafkaMessage.builder()
-            .orderNumber(UUID.randomUUID().toString())
-            .comment("This is a comment.")
+    Mono.just(OrderKafkaAvroMessage.newBuilder()
+            .setOrderNumber(UUID.randomUUID().toString())
+            .setComment("This is a comment.")
             .build())
         .flatMap(messageSender::sendMessage)
         .subscribe();

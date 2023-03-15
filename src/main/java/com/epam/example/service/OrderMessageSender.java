@@ -1,7 +1,7 @@
 package com.epam.example.service;
 
+import com.epam.example.OrderKafkaAvroMessage;
 import com.epam.example.config.properties.KafkaProducerProperties;
-import com.epam.example.model.OrderKafkaMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -17,11 +17,11 @@ import static com.epam.example.config.KafkaConfiguration.ORDER_SENDER_PROPERTIES
 @Slf4j
 public class OrderMessageSender {
 
-  private final KafkaSender<String, OrderKafkaMessage> sender;
+  private final KafkaSender<String, OrderKafkaAvroMessage> sender;
   @Qualifier(ORDER_SENDER_PROPERTIES)
   private final KafkaProducerProperties properties;
 
-  public Mono<Void> sendMessage(OrderKafkaMessage message) {
+  public Mono<Void> sendMessage(OrderKafkaAvroMessage message) {
     return sender.createOutbound().send(Mono.just(new ProducerRecord<>(
             properties.getTopic(),
             message.getOrderNumber(),

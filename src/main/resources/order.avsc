@@ -1,0 +1,17 @@
+{
+  "namespace": "com.epam.example",
+  "type": "record",
+  "name": "OrderKafkaAvroMessage",
+  "fields": [
+    {
+      "name": "orderNumber",
+      "type": "string",
+      "avro.java.string": "String"
+    },
+    {
+      "name": "comment",
+      "type": "string",
+      "avro.java.string": "String"
+    }
+  ]
+}

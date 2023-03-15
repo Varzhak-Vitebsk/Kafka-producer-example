@@ -1,11 +1,18 @@
 package com.epam.example.config;
 
+import com.epam.example.OrderKafkaAvroMessage;
 import com.epam.example.config.properties.KafkaProducerProperties;
 import com.epam.example.config.properties.KafkaSecurityProperties;
 import com.epam.example.config.properties.KafkaTrustStoreProperties;
-import com.epam.example.model.OrderKafkaMessage;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SaslConfigs;
@@ -15,15 +22,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.support.serializer.JsonSerializer;
 import reactor.kafka.sender.KafkaSender;
 import reactor.kafka.sender.SenderOptions;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Configuration
 public class KafkaConfiguration {
@@ -46,13 +46,12 @@ public class KafkaConfiguration {
   }
 
   @Bean
-  public KafkaSender<String, OrderKafkaMessage> orderKafkaSender(
+  public KafkaSender<String, OrderKafkaAvroMessage> orderKafkaSender(
       @Qualifier(ORDER_SENDER_PROPERTIES) KafkaProducerProperties producerProperties,
       @Qualifier(KAFKA_OBJECT_MAPPER) ObjectMapper mapper) {
-    SenderOptions<String, OrderKafkaMessage> senderOptions = SenderOptions.<String, OrderKafkaMessage>create(
+    SenderOptions<String, OrderKafkaAvroMessage> senderOptions = SenderOptions.<String, OrderKafkaAvroMessage>create(
             buildProducerConfigs(producerProperties)).maxInFlight(1024)
-        .withKeySerializer(new StringSerializer())
-        .withValueSerializer(new JsonSerializer<>(mapper));
+        .withKeySerializer(new StringSerializer());
 
     return KafkaSender.create(senderOptions);
   }
@@ -61,6 +60,7 @@ public class KafkaConfiguration {
 
     Map<String, Object> clusterConfigs = new HashMap<>();
     clusterConfigs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, producerProperties.getBootstrapServers());
+    clusterConfigs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
     Optional.ofNullable(producerProperties.getDeliveryTimeout())
         .map(deliverTimeout -> (int) deliverTimeout.toMillis())
         .ifPresent(deliveryTimeoutMillis ->
