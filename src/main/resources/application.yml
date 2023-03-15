@@ -21,6 +21,16 @@ kafka:
         trust-store:
           path: ${KAFKA_PRODUCER_ORDER_SECURITY_TRUST_STORE_PATH:}
           password: ${KAFKA_PRODUCER_ORDER_SECURITY_TRUST_STORE_PASSWORD:}
+  consumer:
+    order:
+      topic: ${KAFKA_CONSUMER_ORDER_TOPIC:orders}
+      bootstrapServers: ${KAFKA_CONSUMER_ORDER_BOOTSTRAP_SERVERS:kafka:9092}
+      security:
+        username: ${KAFKA_CONSUMER_ORDER_SECURITY_USERNAME:}
+        password: ${KAFKA_CONSUMER_ORDER_SECURITY_PASSWORD:}
+        trust-store:
+          path: ${KAFKA_CONSUMER_ORDER_SECURITY_TRUST_STORE_PATH:}
+          password: ${KAFKA_CONSUMER_ORDER_SECURITY_TRUST_STORE_PASSWORD:}
 
 logging:
   level:

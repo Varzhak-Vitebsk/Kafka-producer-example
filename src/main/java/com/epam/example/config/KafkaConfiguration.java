@@ -1,11 +1,13 @@
 package com.epam.example.config;
 
 import com.epam.example.OrderKafkaAvroMessage;
+import com.epam.example.config.properties.KafkaConsumerProperties;
 import com.epam.example.config.properties.KafkaProducerProperties;
 import com.epam.example.config.properties.KafkaSecurityProperties;
 import com.epam.example.config.properties.KafkaTrustStoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,14 +16,20 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.kafka.clients.CommonClientConfigs;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.config.SslConfigs;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import reactor.kafka.sender.KafkaSender;
 import reactor.kafka.sender.SenderOptions;
 
@@ -56,6 +64,24 @@ public class KafkaConfiguration {
     return KafkaSender.create(senderOptions);
   }
 
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, OrderKafkaAvroMessage> orderListenerContainerFactory(KafkaConsumerProperties deliveryReadinessConsumerProperties) {
+    return createKafkaListenerContainerFactory(OrderKafkaAvroMessage.class, deliveryReadinessConsumerProperties);
+  }
+  private <T> ConcurrentKafkaListenerContainerFactory<String, T> createKafkaListenerContainerFactory(Class<T> messageType,
+      KafkaConsumerProperties consumerProperties) {
+    var containerFactory = new ConcurrentKafkaListenerContainerFactory<String, T>();
+
+    containerFactory.setConsumerFactory(
+        new DefaultKafkaConsumerFactory<>(
+            buildConsumerConfigs(consumerProperties)
+        ));
+
+    containerFactory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+
+    return containerFactory;
+  }
+
   private Map<String, Object> buildProducerConfigs(KafkaProducerProperties producerProperties) {
 
     Map<String, Object> clusterConfigs = new HashMap<>();
@@ -68,6 +94,23 @@ public class KafkaConfiguration {
         );
 
     return Stream.of(clusterConfigs, buildSecurityConfigs(producerProperties.getSecurity()))
+        .flatMap(m -> m.entrySet().stream())
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  private Map<String, Object> buildConsumerConfigs(KafkaConsumerProperties consumerProperties) {
+
+    Map<String, Object> clusterConfigs = Map.of(
+        ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, consumerProperties.getBootstrapServers(),
+        ConsumerConfig.GROUP_ID_CONFIG, consumerProperties.getConsumerGroupId(),
+        ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
+        ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false",
+        ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class,
+        ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, KafkaAvroDeserializer.class
+    );
+    Map<String, Object> securityConfigs = buildSecurityConfigs(consumerProperties.getSecurity());
+
+    return Stream.of(clusterConfigs, securityConfigs)
         .flatMap(m -> m.entrySet().stream())
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
