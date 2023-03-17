@@ -1,3 +1,3 @@
 Order-service application.
 
-An example application to show kafka messages producing.
+An example application to show kafka messages producing and consuming using apache avro.
